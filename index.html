@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MathArena - Pratique Equações</title>
+  <meta name="description" content="Plataforma de prática de equações do 1º grau e sistemas de equações com ranking competitivo." />
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      color: #f1f5f9;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    button { cursor: pointer; font-family: inherit; }
+    input, select { font-family: inherit; }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(59,130,246,0.3); }
+      50% { box-shadow: 0 0 40px rgba(59,130,246,0.6); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    .slide-up { animation: slideUp 0.5s ease-out forwards; }
+    .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 4px solid #3b82f6;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+      background: rgba(15,23,42,0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(51,65,85,0.5);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .navbar-inner {
+      max-width: 1152px; margin: 0 auto;
+      padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 8px; background: none; border: none; color: inherit; }
+    .logo-text {
+      font-size: 1.25rem; font-weight: 700;
+      background: linear-gradient(to right, #60a5fa, #a78bfa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav-btns { display: flex; align-items: center; gap: 8px; }
+    .nav-btn {
+      padding: 6px 12px; font-size: 0.875rem;
+      border-radius: 8px; border: none; color: #f1f5f9;
+      background: transparent; transition: background 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .nav-btn:hover { background: rgba(51,65,85,0.5); }
+    .nav-btn-primary { background: #2563eb; }
+    .nav-btn-primary:hover { background: #1d4ed8; }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6, #a855f7);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: #fff;
+    }
+
+    /* ===== LAYOUT ===== */
+    .container { max-width: 1152px; margin: 0 auto; padding: 32px 16px; }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: rgba(30,41,59,0.5);
+      backdrop-filter: blur(8px);
+      border-radius: 16px;
+      border: 1px solid rgba(51,65,85,0.5);
+    }
+
+    /* ===== FORMS ===== */
+    .form-card { max-width: 420px; margin: 0 auto; padding: 32px; }
+    .form-title { font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 0.875rem; font-weight: 500; color: #cbd5e1; margin-bottom: 4px; }
+    .form-input {
+      width: 100%; padding: 10px 16px;
+      background: rgba(15,23,42,0.5);
+      border: 1px solid #475569; border-radius: 8px;
+      color: #fff; font-size: 1rem;
+      outline: none; transition: box-shadow 0.2s;
+    }
+    .form-input:focus { box-shadow: 0 0 0 2px #3b82f6; }
+    .form-input option { background: #1e293b; color: #fff; }
+    .form-error {
+      color: #fb7185; font-size: 0.875rem;
+      background: rgba(244,63,94,0.1);
+      padding: 8px 12px; border-radius: 8px; margin-bottom: 12px;
+    }
+    .btn {
+      width: 100%; padding: 10px; border: none; border-radius: 8px;
+      font-size: 1rem; font-weight: 600; color: #fff;
+      background: #2563eb; transition: background 0.2s;
+    }
+    .btn:hover { background: #1d4ed8; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-lg { padding: 14px 32px; font-size: 1.125rem; border-radius: 12px; width: auto; }
+    .btn-gradient {
+      background: linear-gradient(to right, #2563eb, #7c3aed);
+    }
+    .btn-gradient:hover {
+      background: linear-gradient(to right, #1d4ed8, #6d28d9);
+    }
+    .btn-outline {
+      background: transparent; border: 1px solid #475569;
+    }
+    .btn-outline:hover { background: rgba(30,41,59,0.8); }
+    .btn-danger-outline {
+      background: transparent; border: 1px solid rgba(244,63,94,0.3);
+      color: #fb7185;
+    }
+    .btn-danger-outline:hover { background: rgba(244,63,94,0.1); }
+    .link-btn { background: none; border: none; color: #60a5fa; font-size: 0.875rem; text-decoration: underline; }
+    .link-btn:hover { color: #93c5fd; }
+
+    /* ===== HOME ===== */
+    .hero { text-align: center; padding: 48px 0 32px; }
+    .hero-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 16px; line-height: 1.1; }
+    .hero-gradient {
+      background: linear-gradient(to right, #60a5fa, #a78bfa, #f472b6);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub { font-size: 1.125rem; color: #94a3b8; max-width: 640px; margin: 0 auto 32px; line-height: 1.6; }
+    .hero-btns { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 64px; }
+    .feature-icon { font-size: 2.5rem; margin-bottom: 16px; }
+    .feature-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; }
+    .feature-desc { color: #94a3b8; line-height: 1.5; }
+    .categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; max-width: 768px; margin: 0 auto; }
+    .cat-card-blue { background: linear-gradient(135deg, rgba(30,58,138,0.4), rgba(30,64,175,0.2)); border-color: rgba(59,130,246,0.3); }
+    .cat-card-purple { background: linear-gradient(135deg, rgba(88,28,135,0.4), rgba(107,33,168,0.2)); border-color: rgba(168,85,247,0.3); }
+    .cat-icon { font-size: 1.875rem; margin-bottom: 12px; }
+    .cat-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; }
+    .cat-desc { color: #94a3b8; font-size: 0.875rem; line-height: 1.5; }
+    .level-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .badge {
+      font-size: 0.75rem; padding: 2px 8px; border-radius: 9999px; color: #fff; font-weight: 600;
+    }
+    .badge-1 { background: #10b981; } .badge-2 { background: #22c55e; }
+    .badge-3 { background: #f59e0b; } .badge-4 { background: #f97316; }
+    .badge-5 { background: #f43f5e; }
+    .section-title { font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: 24px; }
+
+    /* ===== PRACTICE ===== */
+    .stats-bar { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+    .stat-chip {
+      background: rgba(30,41,59,0.5); border-radius: 12px;
+      padding: 8px 16px; border: 1px solid rgba(51,65,85,0.5);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .stat-chip .icon { font-size: 1rem; }
+    .stat-chip .value { font-weight: 700; }
+    .stat-chip .label { font-size: 0.875rem; color: #94a3b8; }
+    .filters { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+    .filter-select {
+      padding: 8px 16px; background: rgba(30,41,59,0.8);
+      border: 1px solid #475569; border-radius: 8px;
+      color: #fff; font-size: 0.875rem; outline: none;
+    }
+    .filter-select:focus { box-shadow: 0 0 0 2px #3b82f6; }
+    .q-header {
+      padding: 16px 24px; background: rgba(30,41,59,0.8);
+      border-bottom: 1px solid rgba(51,65,85,0.5);
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .q-header-left { display: flex; align-items: center; gap: 12px; }
+    .q-header-right { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; }
+    .q-points { color: #fbbf24; }
+    .q-counter { color: #94a3b8; }
+    .q-statement { padding: 24px; font-size: 1.125rem; font-weight: 500; white-space: pre-line; line-height: 1.6; }
+    .q-options { padding: 0 24px 24px; display: flex; flex-direction: column; gap: 12px; }
+    .option-btn {
+      width: 100%; text-align: left; padding: 14px 20px;
+      border-radius: 12px; border: 2px solid #334155;
+      background: rgba(30,41,59,0.3); color: #e2e8f0;
+      font-size: 1rem; transition: all 0.2s;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .option-btn:hover:not(:disabled) { border-color: #64748b; background: rgba(51,65,85,0.3); }
+    .option-btn.selected { border-color: #3b82f6; background: rgba(59,130,246,0.1); color: #fff; box-shadow: 0 0 0 2px rgba(59,130,246,0.3); }
+    .option-btn.correct { border-color: #10b981; background: rgba(16,185,129,0.1); color: #6ee7b7; }
+    .option-btn.wrong { border-color: #f43f5e; background: rgba(244,63,94,0.1); color: #fda4af; text-decoration: line-through; }
+    .option-btn.disabled-dim { border-color: #334155; background: rgba(30,41,59,0.3); color: #64748b; }
+    .option-circle {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.875rem; font-weight: 700; flex-shrink: 0;
+      background: #334155; color: #cbd5e1;
+    }
+    .option-circle.selected-circle { background: #3b82f6; color: #fff; }
+    .option-circle.correct-circle { background: #10b981; color: #fff; }
+    .option-circle.wrong-circle { background: #f43f5e; color: #fff; }
+    .q-footer { padding: 0 24px 24px; }
+    .result-banner {
+      padding: 16px; border-radius: 12px; margin-bottom: 16px;
+    }
+    .result-correct { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); }
+    .result-wrong { background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); }
+    .result-header { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+    .result-header .emoji { font-size: 1.5rem; }
+    .result-header .text { font-weight: 700; font-size: 1.125rem; }
+    .text-green { color: #34d399; }
+    .text-red { color: #fb7185; }
+    .text-amber { color: #fbbf24; }
+    .text-blue { color: #60a5fa; }
+    .text-muted { color: #94a3b8; }
+    .explanation-box {
+      background: rgba(15,23,42,0.5); border-radius: 12px;
+      padding: 20px; border: 1px solid rgba(51,65,85,0.5);
+      margin-bottom: 16px;
+    }
+    .explanation-title { font-weight: 700; color: #60a5fa; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .explanation-text { color: #cbd5e1; white-space: pre-line; line-height: 1.6; font-size: 0.875rem; }
+
+    /* ===== COMPLETION ===== */
+    .completion { text-align: center; padding: 64px 0; }
+    .completion .icon { font-size: 3.75rem; margin-bottom: 16px; }
+    .completion h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+    .completion p { color: #94a3b8; margin-bottom: 24px; }
+
+    /* ===== RANKING ===== */
+    .ranking-header { text-align: center; margin-bottom: 32px; }
+    .ranking-header h2 { font-size: 1.875rem; font-weight: 800; margin-bottom: 8px; }
+    .ranking-header p { color: #94a3b8; }
+    .ranking-list { display: flex; flex-direction: column; gap: 12px; max-width: 768px; margin: 0 auto; }
+    .rank-item {
+      display: flex; align-items: center; gap: 16px;
+      padding: 16px 20px; border-radius: 12px;
+      border: 1px solid rgba(51,65,85,0.5);
+      background: rgba(30,41,59,0.5); transition: all 0.2s;
+    }
+    .rank-item.is-me { background: rgba(37,99,235,0.1); border-color: rgba(59,130,246,0.4); box-shadow: 0 0 0 1px rgba(59,130,246,0.2); }
+    .rank-pos { width: 40px; text-align: center; font-size: 1.25rem; font-weight: 700; flex-shrink: 0; }
+    .rank-pos .num { color: #64748b; }
+    .rank-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .rank-avatar.gold { background: linear-gradient(135deg, #facc15, #d97706); }
+    .rank-avatar.silver { background: linear-gradient(135deg, #cbd5e1, #64748b); }
+    .rank-avatar.bronze { background: linear-gradient(135deg, #d97706, #92400e); }
+    .rank-avatar.default { background: linear-gradient(135deg, #3b82f6, #a855f7); }
+    .rank-info { flex: 1; min-width: 0; }
+    .rank-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rank-name .you { color: #60a5fa; font-size: 0.75rem; margin-left: 8px; }
+    .rank-details { display: flex; align-items: center; gap: 12px; font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
+    .rank-score { text-align: right; flex-shrink: 0; }
+    .rank-score .pts { font-size: 1.25rem; font-weight: 700; color: #fbbf24; }
+    .rank-score .lbl { font-size: 0.75rem; color: #64748b; }
+
+    /* ===== PROFILE ===== */
+    .profile-card { max-width: 480px; margin: 0 auto; overflow: hidden; }
+    .profile-header {
+      background: linear-gradient(to right, #2563eb, #7c3aed);
+      padding: 32px; text-align: center;
+    }
+    .profile-avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(255,255,255,0.2); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.875rem; font-weight: 700; margin: 0 auto 12px;
+    }
+    .profile-name { font-size: 1.5rem; font-weight: 700; }
+    .profile-email { color: #bfdbfe; font-size: 0.875rem; }
+    .profile-body { padding: 24px; }
+    .level-bar { margin-bottom: 24px; }
+    .level-bar-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .level-bar-label { font-size: 0.875rem; font-weight: 500; color: #cbd5e1; }
+    .level-bar-value { font-size: 0.875rem; font-weight: 700; color: #60a5fa; }
+    .level-track { width: 100%; height: 12px; background: #334155; border-radius: 9999px; overflow: hidden; }
+    .level-fill {
+      height: 100%; border-radius: 9999px;
+      background: linear-gradient(to right, #3b82f6, #a855f7);
+      transition: width 0.5s;
+    }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .stat-box {
+      background: rgba(15,23,42,0.5); border-radius: 12px;
+      padding: 16px; text-align: center;
+    }
+    .stat-box .num { font-size: 1.875rem; font-weight: 700; }
+    .stat-box .lbl { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (min-width: 640px) {
+      .hero-title { font-size: 3.75rem; }
+      .hero { padding: 80px 0 48px; }
+      .nav-label { display: inline; }
+    }
+    @media (max-width: 639px) {
+      .nav-label { display: none; }
+      .hero-title { font-size: 2rem; }
+      .hero-sub { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+// ============================================================
+// DATA - ALL QUESTIONS
+// ============================================================
+const ALL_QUESTIONS = [
+  // EQUAÇÕES 1º GRAU - NÍVEL 1
+  { id:1, category:"equacao_1grau", difficulty:1, statement:"Resolva a equação: x + 3 = 7", optionA:"x = 4", optionB:"x = 3", optionC:"x = 10", optionD:"x = 5", correctOption:"A", explanation:"Para resolver x + 3 = 7, isolamos x subtraindo 3 de ambos os lados:\nx + 3 - 3 = 7 - 3\nx = 4\n\nVerificação: 4 + 3 = 7 ✓", points:10 },
+  { id:2, category:"equacao_1grau", difficulty:1, statement:"Resolva a equação: x - 5 = 2", optionA:"x = 3", optionB:"x = 7", optionC:"x = -3", optionD:"x = 10", correctOption:"B", explanation:"Para resolver x - 5 = 2, somamos 5 em ambos os lados:\nx - 5 + 5 = 2 + 5\nx = 7\n\nVerificação: 7 - 5 = 2 ✓", points:10 },
+  { id:3, category:"equacao_1grau", difficulty:1, statement:"Resolva a equação: 2x = 10", optionA:"x = 20", optionB:"x = 8", optionC:"x = 5", optionD:"x = 12", correctOption:"C", explanation:"Para resolver 2x = 10, dividimos ambos os lados por 2:\n2x ÷ 2 = 10 ÷ 2\nx = 5\n\nVerificação: 2 × 5 = 10 ✓", points:10 },
+  { id:4, category:"equacao_1grau", difficulty:1, statement:"Resolva a equação: x + 1 = 6", optionA:"x = 7", optionB:"x = 6", optionC:"x = 4", optionD:"x = 5", correctOption:"D", explanation:"Para resolver x + 1 = 6, subtraímos 1 de ambos os lados:\nx + 1 - 1 = 6 - 1\nx = 5\n\nVerificação: 5 + 1 = 6 ✓", points:10 },
+
+  // EQUAÇÕES 1º GRAU - NÍVEL 2
+  { id:5, category:"equacao_1grau", difficulty:2, statement:"Resolva a equação: 3x + 4 = 19", optionA:"x = 7", optionB:"x = 3", optionC:"x = 5", optionD:"x = 6", correctOption:"C", explanation:"Passo 1: Subtrair 4 de ambos os lados:\n3x + 4 - 4 = 19 - 4\n3x = 15\n\nPasso 2: Dividir ambos os lados por 3:\nx = 15 ÷ 3\nx = 5\n\nVerificação: 3(5) + 4 = 15 + 4 = 19 ✓", points:15 },
+  { id:6, category:"equacao_1grau", difficulty:2, statement:"Resolva a equação: 2x - 3 = 11", optionA:"x = 4", optionB:"x = 7", optionC:"x = 8", optionD:"x = 5", correctOption:"B", explanation:"Passo 1: Somar 3 em ambos os lados:\n2x - 3 + 3 = 11 + 3\n2x = 14\n\nPasso 2: Dividir ambos os lados por 2:\nx = 14 ÷ 2\nx = 7\n\nVerificação: 2(7) - 3 = 14 - 3 = 11 ✓", points:15 },
+  { id:7, category:"equacao_1grau", difficulty:2, statement:"Resolva a equação: 5x - 10 = 15", optionA:"x = 1", optionB:"x = 25", optionC:"x = 3", optionD:"x = 5", correctOption:"D", explanation:"Passo 1: Somar 10 em ambos os lados:\n5x - 10 + 10 = 15 + 10\n5x = 25\n\nPasso 2: Dividir ambos os lados por 5:\nx = 25 ÷ 5\nx = 5\n\nVerificação: 5(5) - 10 = 25 - 10 = 15 ✓", points:15 },
+  { id:8, category:"equacao_1grau", difficulty:2, statement:"Resolva a equação: 4x + 2 = 18", optionA:"x = 4", optionB:"x = 5", optionC:"x = 3", optionD:"x = 6", correctOption:"A", explanation:"Passo 1: Subtrair 2 de ambos os lados:\n4x + 2 - 2 = 18 - 2\n4x = 16\n\nPasso 2: Dividir ambos os lados por 4:\nx = 16 ÷ 4\nx = 4\n\nVerificação: 4(4) + 2 = 16 + 2 = 18 ✓", points:15 },
+
+  // EQUAÇÕES 1º GRAU - NÍVEL 3
+  { id:9, category:"equacao_1grau", difficulty:3, statement:"Resolva a equação: 3(x - 2) = 2x + 1", optionA:"x = 5", optionB:"x = 3", optionC:"x = 7", optionD:"x = -1", correctOption:"C", explanation:"Passo 1: Distribuir o 3:\n3x - 6 = 2x + 1\n\nPasso 2: Passar 2x para o lado esquerdo:\n3x - 2x - 6 = 1\nx - 6 = 1\n\nPasso 3: Somar 6 em ambos os lados:\nx = 1 + 6\nx = 7\n\nVerificação: 3(7-2) = 3(5) = 15 e 2(7)+1 = 15 ✓", points:20 },
+  { id:10, category:"equacao_1grau", difficulty:3, statement:"Resolva a equação: 2(x + 3) - 4 = x + 8", optionA:"x = 4", optionB:"x = 6", optionC:"x = 8", optionD:"x = 2", correctOption:"B", explanation:"Passo 1: Distribuir o 2:\n2x + 6 - 4 = x + 8\n2x + 2 = x + 8\n\nPasso 2: Passar x para o lado esquerdo:\n2x - x + 2 = 8\nx + 2 = 8\n\nPasso 3: Subtrair 2:\nx = 8 - 2\nx = 6\n\nVerificação: 2(6+3) - 4 = 2(9) - 4 = 14 e 6+8 = 14 ✓", points:20 },
+  { id:11, category:"equacao_1grau", difficulty:3, statement:"Resolva a equação: 5x - 3 = 2x + 9", optionA:"x = 2", optionB:"x = 3", optionC:"x = 4", optionD:"x = 6", correctOption:"C", explanation:"Passo 1: Passar 2x para o lado esquerdo:\n5x - 2x - 3 = 9\n3x - 3 = 9\n\nPasso 2: Somar 3 em ambos os lados:\n3x = 12\n\nPasso 3: Dividir por 3:\nx = 12 ÷ 3\nx = 4\n\nVerificação: 5(4) - 3 = 17 e 2(4) + 9 = 17 ✓", points:20 },
+  { id:12, category:"equacao_1grau", difficulty:3, statement:"Resolva a equação: 7x - 2(x + 3) = 14", optionA:"x = 2", optionB:"x = 3", optionC:"x = 4", optionD:"x = 5", correctOption:"C", explanation:"Passo 1: Distribuir o -2:\n7x - 2x - 6 = 14\n5x - 6 = 14\n\nPasso 2: Somar 6 em ambos os lados:\n5x = 20\n\nPasso 3: Dividir por 5:\nx = 20 ÷ 5\nx = 4\n\nVerificação: 7(4) - 2(4+3) = 28 - 14 = 14 ✓", points:20 },
+
+  // EQUAÇÕES 1º GRAU - NÍVEL 4
+  { id:13, category:"equacao_1grau", difficulty:4, statement:"Resolva a equação: 4(2x - 1) - 3(x + 2) = 2(x - 5)", optionA:"x = 0", optionB:"x = -2", optionC:"x = 2", optionD:"x = 1", correctOption:"A", explanation:"Passo 1: Distribuir:\n8x - 4 - 3x - 6 = 2x - 10\n5x - 10 = 2x - 10\n\nPasso 2: Passar 2x para a esquerda:\n5x - 2x - 10 = -10\n3x - 10 = -10\n\nPasso 3: Somar 10:\n3x = 0\nx = 0\n\nVerificação: 4(0-1) - 3(0+2) = -4 - 6 = -10 e 2(0-5) = -10 ✓", points:25 },
+  { id:14, category:"equacao_1grau", difficulty:4, statement:"Resolva a equação: (2x + 1)/3 = (x + 4)/2", optionA:"x = 7", optionB:"x = 8", optionC:"x = 10", optionD:"x = 12", correctOption:"C", explanation:"Passo 1: Multiplicar ambos os lados pelo MMC (6):\n6 · (2x + 1)/3 = 6 · (x + 4)/2\n2(2x + 1) = 3(x + 4)\n\nPasso 2: Distribuir:\n4x + 2 = 3x + 12\n\nPasso 3: Isolar x:\n4x - 3x = 12 - 2\nx = 10\n\nVerificação: (2·10 + 1)/3 = 21/3 = 7 e (10 + 4)/2 = 14/2 = 7 ✓", points:25 },
+  { id:15, category:"equacao_1grau", difficulty:4, statement:"Resolva a equação: 3(2x + 1) = 5(x - 1) + 14", optionA:"x = 4", optionB:"x = 6", optionC:"x = 8", optionD:"x = 3", correctOption:"B", explanation:"Passo 1: Distribuir:\n6x + 3 = 5x - 5 + 14\n6x + 3 = 5x + 9\n\nPasso 2: Passar 5x para a esquerda:\n6x - 5x + 3 = 9\nx + 3 = 9\n\nPasso 3: Subtrair 3:\nx = 6\n\nVerificação: 3(2·6 + 1) = 3(13) = 39 e 5(6-1) + 14 = 25 + 14 = 39 ✓", points:25 },
+
+  // EQUAÇÕES 1º GRAU - NÍVEL 5
+  { id:16, category:"equacao_1grau", difficulty:5, statement:"A idade de Pedro é o dobro da idade de João. Daqui a 5 anos, a soma das idades deles será 55. Qual a idade atual de João?", optionA:"10 anos", optionB:"15 anos", optionC:"20 anos", optionD:"25 anos", correctOption:"B", explanation:"Passo 1: Definir variáveis:\nIdade de João = x\nIdade de Pedro = 2x\n\nPasso 2: Daqui a 5 anos:\nIdade de João = x + 5\nIdade de Pedro = 2x + 5\n\nPasso 3: Soma das idades daqui a 5 anos = 55:\n(x + 5) + (2x + 5) = 55\n3x + 10 = 55\n3x = 45\nx = 15\n\nJoão tem 15 anos e Pedro tem 30 anos.\nVerificação: Daqui a 5 anos: 20 + 35 = 55 ✓", points:30 },
+  { id:17, category:"equacao_1grau", difficulty:5, statement:"Um retângulo tem perímetro de 56 cm. O comprimento é 4 cm a mais que o dobro da largura. Qual é a largura?", optionA:"6 cm", optionB:"8 cm", optionC:"10 cm", optionD:"12 cm", correctOption:"B", explanation:"Passo 1: Definir variáveis:\nLargura = x\nComprimento = 2x + 4\n\nPasso 2: Fórmula do perímetro:\n2(largura + comprimento) = 56\n2(x + 2x + 4) = 56\n2(3x + 4) = 56\n\nPasso 3: Resolver:\n6x + 8 = 56\n6x = 48\nx = 8\n\nLargura = 8 cm, Comprimento = 2(8) + 4 = 20 cm\nVerificação: 2(8 + 20) = 2(28) = 56 ✓", points:30 },
+  { id:18, category:"equacao_1grau", difficulty:5, statement:"Maria tem o triplo da quantia de Ana. Se Maria der R$ 20 para Ana, ambas ficarão com a mesma quantia. Quanto Maria tem?", optionA:"R$ 40", optionB:"R$ 50", optionC:"R$ 60", optionD:"R$ 80", correctOption:"C", explanation:"Passo 1: Definir variáveis:\nAna = x\nMaria = 3x\n\nPasso 2: Se Maria der R$ 20 para Ana:\nMaria fica com: 3x - 20\nAna fica com: x + 20\n\nPasso 3: Igualar (ficam com a mesma quantia):\n3x - 20 = x + 20\n3x - x = 20 + 20\n2x = 40\nx = 20\n\nMaria tem 3(20) = R$ 60\n\nVerificação: Maria: 60 - 20 = 40, Ana: 20 + 20 = 40 ✓", points:30 },
+
+  // SISTEMAS DE EQUAÇÕES - NÍVEL 1
+  { id:19, category:"sistema_equacoes", difficulty:1, statement:"Resolva o sistema:\nx + y = 5\nx - y = 1\nQual o valor de x?", optionA:"x = 2", optionB:"x = 3", optionC:"x = 4", optionD:"x = 1", correctOption:"B", explanation:"Método da adição:\nSomando as duas equações:\n(x + y) + (x - y) = 5 + 1\n2x = 6\nx = 3\n\nSubstituindo em x + y = 5:\n3 + y = 5 → y = 2\n\nSolução: x = 3 e y = 2\nVerificação: 3 + 2 = 5 ✓ e 3 - 2 = 1 ✓", points:10 },
+  { id:20, category:"sistema_equacoes", difficulty:1, statement:"Resolva o sistema:\nx + y = 10\nx - y = 4\nQual o valor de y?", optionA:"y = 7", optionB:"y = 4", optionC:"y = 3", optionD:"y = 5", correctOption:"C", explanation:"Somando as equações:\n(x + y) + (x - y) = 10 + 4\n2x = 14 → x = 7\n\nSubstituindo: 7 + y = 10 → y = 3\n\nVerificação: 7 + 3 = 10 ✓ e 7 - 3 = 4 ✓", points:10 },
+  { id:21, category:"sistema_equacoes", difficulty:1, statement:"Resolva o sistema:\nx + y = 7\ny = 3\nQual o valor de x?", optionA:"x = 3", optionB:"x = 7", optionC:"x = 4", optionD:"x = 10", correctOption:"C", explanation:"Como y = 3, substituímos na primeira equação:\nx + 3 = 7\nx = 7 - 3\nx = 4\n\nSolução: x = 4 e y = 3\nVerificação: 4 + 3 = 7 ✓", points:10 },
+
+  // SISTEMAS DE EQUAÇÕES - NÍVEL 2
+  { id:22, category:"sistema_equacoes", difficulty:2, statement:"Resolva o sistema:\n2x + y = 7\nx - y = 2\nQual o valor de x?", optionA:"x = 2", optionB:"x = 3", optionC:"x = 4", optionD:"x = 1", correctOption:"B", explanation:"Somando as duas equações:\n(2x + y) + (x - y) = 7 + 2\n3x = 9\nx = 3\n\nSubstituindo: 3 - y = 2 → y = 1\n\nVerificação: 2(3) + 1 = 7 ✓ e 3 - 1 = 2 ✓", points:15 },
+  { id:23, category:"sistema_equacoes", difficulty:2, statement:"Resolva o sistema:\n3x + 2y = 12\nx + 2y = 8\nQual o valor de x?", optionA:"x = 1", optionB:"x = 2", optionC:"x = 3", optionD:"x = 4", correctOption:"B", explanation:"Subtraindo a segunda da primeira:\n(3x + 2y) - (x + 2y) = 12 - 8\n2x = 4\nx = 2\n\nSubstituindo: 2 + 2y = 8 → 2y = 6 → y = 3\n\nVerificação: 3(2) + 2(3) = 12 ✓ e 2 + 2(3) = 8 ✓", points:15 },
+  { id:24, category:"sistema_equacoes", difficulty:2, statement:"Resolva o sistema:\nx + 3y = 11\nx + y = 5\nQual o valor de y?", optionA:"y = 2", optionB:"y = 3", optionC:"y = 4", optionD:"y = 1", correctOption:"B", explanation:"Subtraindo a segunda da primeira:\n(x + 3y) - (x + y) = 11 - 5\n2y = 6\ny = 3\n\nSubstituindo: x + 3 = 5 → x = 2\n\nVerificação: 2 + 3(3) = 11 ✓ e 2 + 3 = 5 ✓", points:15 },
+
+  // SISTEMAS DE EQUAÇÕES - NÍVEL 3
+  { id:25, category:"sistema_equacoes", difficulty:3, statement:"Resolva o sistema:\n2x + 3y = 16\n3x - 2y = 11\nQual o valor de x + y?", optionA:"x + y = 6", optionB:"x + y = 7", optionC:"x + y = 8", optionD:"x + y = 9", correctOption:"B", explanation:"Multiplicando a 1ª por 2 e a 2ª por 3:\n4x + 6y = 32\n9x - 6y = 33\n\nSomando:\n13x = 65\nx = 5\n\nSubstituindo na 1ª: 10 + 3y = 16 → 3y = 6 → y = 2\n\nx + y = 5 + 2 = 7\n\nVerificação: 2(5) + 3(2) = 16 ✓ e 3(5) - 2(2) = 11 ✓", points:20 },
+  { id:26, category:"sistema_equacoes", difficulty:3, statement:"Resolva o sistema:\n4x - y = 10\n2x + 3y = 12\nQual o valor de y?", optionA:"y = 1", optionB:"y = 2", optionC:"y = 3", optionD:"y = 4", correctOption:"B", explanation:"Da 1ª equação: y = 4x - 10\n\nSubstituindo na 2ª:\n2x + 3(4x - 10) = 12\n2x + 12x - 30 = 12\n14x = 42\nx = 3\n\ny = 4(3) - 10 = 2\n\nVerificação: 4(3) - 2 = 10 ✓ e 2(3) + 3(2) = 12 ✓", points:20 },
+
+  // SISTEMAS DE EQUAÇÕES - NÍVEL 4
+  { id:27, category:"sistema_equacoes", difficulty:4, statement:"Resolva o sistema:\n(x/2) + (y/3) = 5\n(x/3) - (y/2) = -1\nQual o valor de x?", optionA:"x = 4", optionB:"x = 6", optionC:"x = 8", optionD:"x = 2", correctOption:"B", explanation:"Passo 1: Multiplicar a 1ª por 6:\n3x + 2y = 30\n\nPasso 2: Multiplicar a 2ª por 6:\n2x - 3y = -6\n\nPasso 3: Multiplicar a nova 1ª por 3 e a nova 2ª por 2:\n9x + 6y = 90\n4x - 6y = -12\n\nSomando:\n13x = 78\nx = 6\n\nSubstituindo: 3(6) + 2y = 30 → 18 + 2y = 30 → y = 6\n\nVerificação: 6/2 + 6/3 = 3 + 2 = 5 ✓ e 6/3 - 6/2 = 2 - 3 = -1 ✓", points:25 },
+  { id:28, category:"sistema_equacoes", difficulty:4, statement:"Dois números têm soma 50. O dobro do maior menos o triplo do menor é igual a 10. Qual é o maior número?", optionA:"28", optionB:"30", optionC:"32", optionD:"34", correctOption:"C", explanation:"Seja x o maior e y o menor.\n\nSistema:\nx + y = 50\n2x - 3y = 10\n\nDa 1ª: y = 50 - x\n\nSubstituindo na 2ª:\n2x - 3(50 - x) = 10\n2x - 150 + 3x = 10\n5x = 160\nx = 32\n\ny = 50 - 32 = 18\n\nVerificação: 32 + 18 = 50 ✓ e 2(32) - 3(18) = 64 - 54 = 10 ✓", points:25 },
+
+  // SISTEMAS DE EQUAÇÕES - NÍVEL 5
+  { id:29, category:"sistema_equacoes", difficulty:5, statement:"Um fazendeiro tem galinhas e coelhos. No total são 35 cabeças e 94 patas. Quantas galinhas ele tem?", optionA:"18 galinhas", optionB:"20 galinhas", optionC:"23 galinhas", optionD:"25 galinhas", correctOption:"C", explanation:"Seja g = galinhas e c = coelhos.\n\nSistema:\ng + c = 35 (cabeças)\n2g + 4c = 94 (patas)\n\nDa 1ª: g = 35 - c\n\nSubstituindo na 2ª:\n2(35 - c) + 4c = 94\n70 - 2c + 4c = 94\n2c = 24\nc = 12\n\ng = 35 - 12 = 23\n\nVerificação: 23 + 12 = 35 ✓ e 2(23) + 4(12) = 46 + 48 = 94 ✓", points:30 },
+  { id:30, category:"sistema_equacoes", difficulty:5, statement:"A soma de dois números é 40. O maior excede o triplo do menor em 4. Qual é o menor número?", optionA:"7", optionB:"8", optionC:"9", optionD:"10", correctOption:"C", explanation:"Seja x o maior e y o menor.\n\nSistema:\nx + y = 40\nx = 3y + 4\n\nSubstituindo:\n3y + 4 + y = 40\n4y + 4 = 40\n4y = 36\ny = 9\n\nx = 3(9) + 4 = 31\n\nVerificação: 31 + 9 = 40 ✓ e 31 = 3(9) + 4 = 27 + 4 = 31 ✓", points:30 },
+  { id:31, category:"sistema_equacoes", difficulty:5, statement:"Um cinema vendeu 800 ingressos. Ingressos inteiros custam R$ 30 e meias-entradas custam R$ 15. A arrecadação total foi R$ 18.000. Quantos ingressos inteiros foram vendidos?", optionA:"350", optionB:"400", optionC:"450", optionD:"500", correctOption:"B", explanation:"Seja i = ingressos inteiros e m = meias-entradas.\n\nSistema:\ni + m = 800\n30i + 15m = 18000\n\nDa 1ª: m = 800 - i\n\nSubstituindo:\n30i + 15(800 - i) = 18000\n30i + 12000 - 15i = 18000\n15i = 6000\ni = 400\n\nm = 800 - 400 = 400\n\nVerificação: 400 + 400 = 800 ✓ e 30(400) + 15(400) = 12000 + 6000 = 18000 ✓", points:30 },
+];
+
+const DIFF_LABELS = { 1:"Muito Fácil", 2:"Fácil", 3:"Médio", 4:"Difícil", 5:"Muito Difícil" };
+const DIFF_BADGE = { 1:"badge-1", 2:"badge-2", 3:"badge-3", 4:"badge-4", 5:"badge-5" };
+const CAT_LABELS = { equacao_1grau:"Equações do 1º Grau", sistema_equacoes:"Sistemas de Equações" };
+const OPTION_KEYS = ["A","B","C","D"];
+
+// ============================================================
+// STORAGE HELPERS
+// ============================================================
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem("ma_users") || "[]"); } catch { return []; }
+}
+function saveUsers(users) { localStorage.setItem("ma_users", JSON.stringify(users)); }
+function getSession() {
+  try { return JSON.parse(localStorage.getItem("ma_session") || "null"); } catch { return null; }
+}
+function saveSession(u) { localStorage.setItem("ma_session", u ? JSON.stringify(u) : "null"); }
+function getUserAnswers(userId) {
+  try { return JSON.parse(localStorage.getItem("ma_answers_"+userId) || "[]"); } catch { return []; }
+}
+function saveUserAnswers(userId, answers) { localStorage.setItem("ma_answers_"+userId, JSON.stringify(answers)); }
+
+// ============================================================
+// APP STATE
+// ============================================================
+let state = {
+  view: "home",
+  user: getSession(),
+  // practice
+  filteredQuestions: [],
+  currentIndex: 0,
+  selectedOption: null,
+  result: null,
+  filterCategory: "all",
+  filterDifficulty: "all",
+};
+
+function refreshUser() {
+  if (!state.user) return;
+  const users = getUsers();
+  const u = users.find(x => x.id === state.user.id);
+  if (u) { state.user = u; saveSession(u); }
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = renderNavbar() + '<main class="container">' + renderView() + '</main>';
+  bindEvents();
+}
+
+function renderNavbar() {
+  const u = state.user;
+  let rightBtns = '';
+  rightBtns += `<button class="nav-btn" data-nav="ranking">🏆 <span class="nav-label">Ranking</span></button>`;
+  if (u) {
+    rightBtns += `<button class="nav-btn nav-btn-primary" data-nav="practice">📝 <span class="nav-label">Praticar</span></button>`;
+    rightBtns += `<button class="nav-btn" data-nav="profile"><span class="avatar">${esc(u.name.charAt(0).toUpperCase())}</span> <span class="nav-label">${esc(u.name)}</span></button>`;
+  } else {
+    rightBtns += `<button class="nav-btn nav-btn-primary" data-nav="login">Entrar</button>`;
+  }
+  return `<nav class="navbar"><div class="navbar-inner"><button class="logo" data-nav="home"><span style="font-size:1.5rem">🧮</span><span class="logo-text">MathArena</span></button><div class="nav-btns">${rightBtns}</div></div></nav>`;
+}
+
+function renderView() {
+  switch(state.view) {
+    case "home": return renderHome();
+    case "login": return renderLogin();
+    case "register": return renderRegister();
+    case "practice": return state.user ? renderPractice() : renderLogin();
+    case "ranking": return renderRanking();
+    case "profile": return state.user ? renderProfile() : renderLogin();
+    default: return renderHome();
+  }
+}
+
+// ===== HOME =====
+function renderHome() {
+  const u = state.user;
+  const heroBtns = u
+    ? `<button class="btn btn-lg btn-gradient pulse-glow" data-nav="practice">Começar a Praticar 🚀</button>`
+    : `<div class="hero-btns"><button class="btn btn-lg btn-gradient" data-nav="register">Criar Conta Grátis</button><button class="btn btn-lg btn-outline" data-nav="login">Já Tenho Conta</button></div>`;
+
+  const badges = [1,2,3,4,5].map(d => `<span class="badge ${DIFF_BADGE[d]}">Nível ${d}</span>`).join('');
+
+  return `<div class="fade-in">
+    <div class="hero">
+      <h1 class="hero-title"><span class="hero-gradient">Domine Equações</span></h1>
+      <p class="hero-sub">Pratique equações do 1º grau e sistemas de equações com dificuldade progressiva. Ganhe pontos, suba no ranking e compita com seus colegas!</p>
+      ${heroBtns}
+    </div>
+    <div class="features">
+      <div class="card" style="padding:24px"><div class="feature-icon">📈</div><h3 class="feature-title">Dificuldade Progressiva</h3><p class="feature-desc">5 níveis de dificuldade que vão do básico ao avançado. Evolua no seu ritmo!</p></div>
+      <div class="card" style="padding:24px"><div class="feature-icon">💡</div><h3 class="feature-title">Resolução Comentada</h3><p class="feature-desc">Ao acertar, veja a resolução passo a passo para consolidar seu aprendizado.</p></div>
+      <div class="card" style="padding:24px"><div class="feature-icon">🏆</div><h3 class="feature-title">Ranking Competitivo</h3><p class="feature-desc">Compare seu desempenho com outros alunos e dispute o topo do ranking!</p></div>
+    </div>
+    <h2 class="section-title">Categorias</h2>
+    <div class="categories">
+      <div class="card cat-card-blue" style="padding:24px"><div class="cat-icon">➕</div><h3 class="cat-title">Equações do 1º Grau</h3><p class="cat-desc">Desde x + 3 = 7 até problemas contextualizados com interpretação de texto. Aprenda a isolar a incógnita e resolver qualquer equação linear.</p><div class="level-badges">${badges}</div></div>
+      <div class="card cat-card-purple" style="padding:24px"><div class="cat-icon">🔗</div><h3 class="cat-title">Sistemas de Equações</h3><p class="cat-desc">Do método da adição simples a problemas de lógica com múltiplas variáveis. Domine substituição, adição e resolução de sistemas.</p><div class="level-badges">${badges}</div></div>
+    </div>
+  </div>`;
+}
+
+// ===== LOGIN =====
+function renderLogin() {
+  return `<div class="fade-in"><div class="card form-card">
+    <h2 class="form-title">Entrar na sua conta</h2>
+    <form id="loginForm">
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="loginEmail" placeholder="seu@email.com" required /></div>
+      <div class="form-group"><label class="form-label">Senha</label><input class="form-input" type="password" id="loginPass" placeholder="••••••" required /></div>
+      <div id="loginError"></div>
+      <button class="btn" type="submit">Entrar</button>
+    </form>
+    <p style="text-align:center;font-size:0.875rem;color:#94a3b8;margin-top:16px">Não tem conta? <button class="link-btn" data-nav="register">Cadastre-se</button></p>
+  </div></div>`;
+}
+
+// ===== REGISTER =====
+function renderRegister() {
+  return `<div class="fade-in"><div class="card form-card">
+    <h2 class="form-title">Criar Conta</h2>
+    <form id="registerForm">
+      <div class="form-group"><label class="form-label">Nome</label><input class="form-input" type="text" id="regName" placeholder="Seu nome" required /></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="regEmail" placeholder="seu@email.com" required /></div>
+      <div class="form-group"><label class="form-label">Senha</label><input class="form-input" type="password" id="regPass" placeholder="Mínimo 4 caracteres" required minlength="4" /></div>
+      <div id="regError"></div>
+      <button class="btn" type="submit">Cadastrar</button>
+    </form>
+    <p style="text-align:center;font-size:0.875rem;color:#94a3b8;margin-top:16px">Já tem conta? <button class="link-btn" data-nav="login">Entrar</button></p>
+  </div></div>`;
+}
+
+// ===== PRACTICE =====
+function renderPractice() {
+  const u = state.user;
+  const accuracy = u.questionsAnswered > 0 ? Math.round((u.questionsCorrect / u.questionsAnswered) * 100) : 0;
+
+  // build filtered questions
+  loadFilteredQuestions();
+
+  const q = state.filteredQuestions[state.currentIndex];
+
+  let content = '';
+
+  // Stats bar
+  content += `<div class="stats-bar">
+    <div class="stat-chip"><span class="icon" style="color:#fbbf24">⭐</span><span class="value">${u.totalScore}</span><span class="label">pontos</span></div>
+    <div class="stat-chip"><span class="icon" style="color:#34d399">✅</span><span class="value">${u.questionsCorrect}</span><span class="label">acertos</span></div>
+    <div class="stat-chip"><span class="icon" style="color:#60a5fa">📊</span><span class="value">${accuracy}%</span><span class="label">aproveitamento</span></div>
+  </div>`;
+
+  // Filters
+  const catOpts = `<option value="all">Todas as categorias</option><option value="equacao_1grau"${state.filterCategory==='equacao_1grau'?' selected':''}>Equações do 1º Grau</option><option value="sistema_equacoes"${state.filterCategory==='sistema_equacoes'?' selected':''}>Sistemas de Equações</option>`;
+  let diffOpts = `<option value="all">Todas as dificuldades</option>`;
+  for (let d=1;d<=5;d++) diffOpts += `<option value="${d}"${state.filterDifficulty==d?' selected':''}>Nível ${d} - ${DIFF_LABELS[d]}</option>`;
+  content += `<div class="filters"><select class="filter-select" id="filterCat">${catOpts}</select><select class="filter-select" id="filterDiff">${diffOpts}</select></div>`;
+
+  if (!q) {
+    content += `<div class="card completion"><div class="icon">🎉</div><h3>Parabéns!</h3><p>Você completou todas as questões desta categoria/dificuldade!</p><button class="btn" style="width:auto;padding:10px 24px" id="resetFilters">Ver todas as questões</button></div>`;
+  } else {
+    const r = state.result;
+    // Question card
+    content += `<div class="card" style="overflow:hidden">`;
+    // Header
+    content += `<div class="q-header"><div class="q-header-left"><span class="badge ${DIFF_BADGE[q.difficulty]}">${DIFF_LABELS[q.difficulty]}</span><span style="font-size:0.875rem;color:#94a3b8">${CAT_LABELS[q.category]}</span></div><div class="q-header-right"><span class="q-points">+${q.points} pts</span><span style="color:#64748b">•</span><span class="q-counter">${state.currentIndex+1} de ${state.filteredQuestions.length}</span></div></div>`;
+    // Statement
+    content += `<div class="q-statement">${esc(q.statement)}</div>`;
+    // Options
+    content += `<div class="q-options">`;
+    OPTION_KEYS.forEach(label => {
+      const text = q["option"+label];
+      const isSel = state.selectedOption === label;
+      const isAnswered = r !== null;
+      const isCorrectOpt = r && r.correctOption === label;
+      const isWrongSel = isAnswered && isSel && !r.isCorrect;
+
+      let cls = "option-btn";
+      let circCls = "option-circle";
+      let circText = label;
+
+      if (isAnswered) {
+        if (isCorrectOpt) { cls += " correct"; circCls += " correct-circle"; circText = "✓"; }
+        else if (isWrongSel) { cls += " wrong"; circCls += " wrong-circle"; circText = "✗"; }
+        else { cls += " disabled-dim"; }
+      } else if (isSel) {
+        cls += " selected"; circCls += " selected-circle";
+      }
+
+      content += `<button class="${cls}" data-option="${label}" ${isAnswered?'disabled':''}><span class="${circCls}">${circText}</span><span>${esc(text)}</span></button>`;
+    });
+    content += `</div>`;
+
+    // Footer
+    content += `<div class="q-footer">`;
+    if (!r) {
+      content += `<button class="btn" id="submitAnswer" ${!state.selectedOption?'disabled':''}>Confirmar Resposta</button>`;
+    } else {
+      content += `<div class="slide-up">`;
+      // Result banner
+      if (r.isCorrect) {
+        content += `<div class="result-banner result-correct"><div class="result-header"><span class="emoji">🎉</span><span class="text text-green">Correto! +${r.pointsEarned} pontos</span></div></div>`;
+        // Explanation
+        content += `<div class="explanation-box"><div class="explanation-title">💡 Resolução Comentada</div><p class="explanation-text">${esc(r.explanation)}</p></div>`;
+      } else {
+        content += `<div class="result-banner result-wrong"><div class="result-header"><span class="emoji">❌</span><span class="text text-red">Incorreto!</span></div><p class="text-muted" style="font-size:0.875rem;margin-top:4px">A resposta correta é a alternativa <strong class="text-green">${r.correctOption}</strong>. Tente novamente para ver a resolução comentada!</p></div>`;
+      }
+      content += `<button class="btn" id="nextQuestion">${r.isCorrect ? 'Próxima Questão →' : 'Tentar Outra →'}</button>`;
+      content += `</div>`;
+    }
+    content += `</div></div>`;
+  }
+
+  return `<div class="fade-in">${content}</div>`;
+}
+
+function loadFilteredQuestions() {
+  if (!state.user) return;
+  const answers = getUserAnswers(state.user.id);
+  const correctIds = new Set(answers.filter(a => a.isCorrect).map(a => a.questionId));
+
+  state.filteredQuestions = ALL_QUESTIONS.filter(q => {
+    if (correctIds.has(q.id)) return false;
+    if (state.filterCategory !== "all" && q.category !== state.filterCategory) return false;
+    if (state.filterDifficulty !== "all" && q.difficulty !== parseInt(state.filterDifficulty)) return false;
+    return true;
+  }).sort((a,b) => a.difficulty - b.difficulty || a.id - b.id);
+}
+
+// ===== RANKING =====
+function renderRanking() {
+  const users = getUsers().sort((a,b) => b.totalScore - a.totalScore);
+  const medals = ["🥇","🥈","🥉"];
+
+  let rows = '';
+  if (users.length === 0) {
+    rows = `<div class="card completion"><div class="icon">🏜️</div><p style="color:#94a3b8">Nenhum aluno cadastrado ainda. Seja o primeiro!</p></div>`;
+  } else {
+    users.forEach((u,i) => {
+      const isMe = state.user && u.id === state.user.id;
+      const acc = u.questionsAnswered > 0 ? Math.round((u.questionsCorrect/u.questionsAnswered)*100) : 0;
+      const avCls = i===0?'gold':i===1?'silver':i===2?'bronze':'default';
+      rows += `<div class="rank-item${isMe?' is-me':''}" ${i<3?'style="box-shadow:0 4px 20px rgba(0,0,0,0.3)"':''}>
+        <div class="rank-pos">${i<3?medals[i]:`<span class="num">${i+1}</span>`}</div>
+        <div class="rank-avatar ${avCls}">${esc(u.name.charAt(0).toUpperCase())}</div>
+        <div class="rank-info"><p class="rank-name">${esc(u.name)}${isMe?'<span class="you">(você)</span>':''}</p><div class="rank-details"><span>Nível ${u.currentLevel}</span><span>•</span><span>${u.questionsCorrect}/${u.questionsAnswered} acertos</span><span>•</span><span>${acc}%</span></div></div>
+        <div class="rank-score"><div class="pts">${u.totalScore}</div><div class="lbl">pontos</div></div>
+      </div>`;
+    });
+  }
+
+  return `<div class="fade-in" style="max-width:768px;margin:0 auto">
+    <div class="ranking-header"><h2>🏆 Ranking</h2><p>Os melhores alunos em equações matemáticas</p></div>
+    <div class="ranking-list">${rows}</div>
+  </div>`;
+}
+
+// ===== PROFILE =====
+function renderProfile() {
+  const u = state.user;
+  const acc = u.questionsAnswered > 0 ? Math.round((u.questionsCorrect/u.questionsAnswered)*100) : 0;
+  const lvlPct = Math.min(100, (u.currentLevel/5)*100);
+
+  return `<div class="fade-in"><div class="card profile-card">
+    <div class="profile-header">
+      <div class="profile-avatar">${esc(u.name.charAt(0).toUpperCase())}</div>
+      <h2 class="profile-name">${esc(u.name)}</h2>
+      <p class="profile-email">${esc(u.email)}</p>
+    </div>
+    <div class="profile-body">
+      <div class="level-bar">
+        <div class="level-bar-header"><span class="level-bar-label">Nível Atual</span><span class="level-bar-value">${u.currentLevel} / 5 — ${DIFF_LABELS[u.currentLevel]}</span></div>
+        <div class="level-track"><div class="level-fill" style="width:${lvlPct}%"></div></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box"><p class="num text-amber">${u.totalScore}</p><p class="lbl">Pontos Totais</p></div>
+        <div class="stat-box"><p class="num text-green">${acc}%</p><p class="lbl">Aproveitamento</p></div>
+        <div class="stat-box"><p class="num text-blue">${u.questionsCorrect}</p><p class="lbl">Questões Corretas</p></div>
+        <div class="stat-box"><p class="num" style="color:#cbd5e1">${u.questionsAnswered}</p><p class="lbl">Total Respondidas</p></div>
+      </div>
+      <button class="btn btn-danger-outline" id="logoutBtn">Sair da Conta</button>
+    </div>
+  </div></div>`;
+}
+
+// ============================================================
+// EVENT BINDING
+// ============================================================
+function bindEvents() {
+  // Navigation
+  document.querySelectorAll("[data-nav]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.view = btn.dataset.nav;
+      state.selectedOption = null;
+      state.result = null;
+      state.currentIndex = 0;
+      render();
+    });
+  });
+
+  // Login form
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value.toLowerCase().trim();
+      const pass = document.getElementById("loginPass").value;
+      const users = getUsers();
+      const u = users.find(x => x.email === email);
+      if (!u || u.password !== pass) {
+        document.getElementById("loginError").innerHTML = '<div class="form-error">Email ou senha incorretos</div>';
+        return;
+      }
+      state.user = u;
+      saveSession(u);
+      state.view = "home";
+      render();
+    });
+  }
+
+  // Register form
+  const regForm = document.getElementById("registerForm");
+  if (regForm) {
+    regForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const name = document.getElementById("regName").value.trim();
+      const email = document.getElementById("regEmail").value.toLowerCase().trim();
+      const pass = document.getElementById("regPass").value;
+      if (pass.length < 4) {
+        document.getElementById("regError").innerHTML = '<div class="form-error">A senha deve ter pelo menos 4 caracteres</div>';
+        return;
+      }
+      const users = getUsers();
+      if (users.find(x => x.email === email)) {
+        document.getElementById("regError").innerHTML = '<div class="form-error">Este email já está cadastrado</div>';
+        return;
+      }
+      const newUser = {
+        id: Date.now(),
+        name, email, password: pass,
+        totalScore: 0, questionsAnswered: 0, questionsCorrect: 0, currentLevel: 1
+      };
+      users.push(newUser);
+      saveUsers(users);
+      state.user = newUser;
+      saveSession(newUser);
+      state.view = "home";
+      render();
+    });
+  }
+
+  // Logout
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      state.user = null;
+      saveSession(null);
+      state.view = "home";
+      render();
+    });
+  }
+
+  // Filters
+  const filterCat = document.getElementById("filterCat");
+  if (filterCat) {
+    filterCat.addEventListener("change", () => {
+      state.filterCategory = filterCat.value;
+      state.currentIndex = 0;
+      state.selectedOption = null;
+      state.result = null;
+      render();
+    });
+  }
+  const filterDiff = document.getElementById("filterDiff");
+  if (filterDiff) {
+    filterDiff.addEventListener("change", () => {
+      state.filterDifficulty = filterDiff.value;
+      state.currentIndex = 0;
+      state.selectedOption = null;
+      state.result = null;
+      render();
+    });
+  }
+
+  // Option selection
+  document.querySelectorAll("[data-option]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (state.result) return;
+      state.selectedOption = btn.dataset.option;
+      render();
+    });
+  });
+
+  // Submit answer
+  const submitBtn = document.getElementById("submitAnswer");
+  if (submitBtn) {
+    submitBtn.addEventListener("click", () => {
+      if (!state.selectedOption) return;
+      const q = state.filteredQuestions[state.currentIndex];
+      if (!q) return;
+
+      const isCorrect = state.selectedOption === q.correctOption;
+      const pointsEarned = isCorrect ? q.points : 0;
+
+      // Save answer
+      const answers = getUserAnswers(state.user.id);
+      answers.push({ questionId: q.id, selectedOption: state.selectedOption, isCorrect, pointsEarned, answeredAt: new Date().toISOString() });
+      saveUserAnswers(state.user.id, answers);
+
+      // Update user stats
+      const users = getUsers();
+      const uIdx = users.findIndex(x => x.id === state.user.id);
+      if (uIdx >= 0) {
+        users[uIdx].questionsAnswered += 1;
+        if (isCorrect) {
+          users[uIdx].questionsCorrect += 1;
+          users[uIdx].totalScore += pointsEarned;
+          users[uIdx].currentLevel = Math.min(5, Math.max(users[uIdx].currentLevel, q.difficulty));
+        }
+        saveUsers(users);
+        state.user = users[uIdx];
+        saveSession(state.user);
+      }
+
+      state.result = {
+        isCorrect,
+        correctOption: q.correctOption,
+        explanation: q.explanation,
+        pointsEarned
+      };
+      render();
+    });
+  }
+
+  // Next question
+  const nextBtn = document.getElementById("nextQuestion");
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      if (state.result && state.result.isCorrect) {
+        // Question removed from filtered on next render
+        loadFilteredQuestions();
+        state.currentIndex = Math.min(state.currentIndex, Math.max(0, state.filteredQuestions.length - 1));
+      } else {
+        state.currentIndex = state.currentIndex < state.filteredQuestions.length - 1 ? state.currentIndex + 1 : 0;
+      }
+      state.selectedOption = null;
+      state.result = null;
+      render();
+    });
+  }
+
+  // Reset filters
+  const resetBtn = document.getElementById("resetFilters");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      state.filterCategory = "all";
+      state.filterDifficulty = "all";
+      state.currentIndex = 0;
+      state.selectedOption = null;
+      state.result = null;
+      render();
+    });
+  }
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function esc(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML.replace(/\n/g, '<br>');
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+render();
+</script>
+</body>
+</html>
